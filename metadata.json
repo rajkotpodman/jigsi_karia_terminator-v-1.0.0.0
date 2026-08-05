@@ -1,0 +1,8 @@
+{
+  "name": "Jigsi Karia Cyber OSINT Gateway",
+  "description": "Upgraded Version 4.0 Cyber OSINT Gateway & Hacker Scanner with 300+ tools",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

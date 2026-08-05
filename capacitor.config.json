@@ -1,0 +1,15 @@
+{
+  "appId": "com.jigsikaria.terminator",
+  "appName": "Jigsi Karia Terminator",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "buildOptions": {
+      "releaseType": "APK"
+    }
+  }
+}

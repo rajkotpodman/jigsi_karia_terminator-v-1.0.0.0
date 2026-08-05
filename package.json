@@ -1,0 +1,16 @@
+{
+  "name": "jigsi_karia_terminator",
+  "version": "4.0.0",
+  "description": "Cyber OSINT Gateway & Hacker Scanner",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step required'",
+    "lint": "echo 'No lint required'"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

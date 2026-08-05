@@ -1,0 +1,64 @@
+{
+  "pkg": {
+    "productName": "Jigsi Karia Terminator",
+    "version": "4.0.0",
+    "description": "Enterprise Cyber OSINT Gateway & Hacker Scanner",
+    "homepage": "https://github.com/rajkotpodman/jigsi_karia_terminator"
+  },
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:3000",
+    "distDir": "../"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "© 2026 Jigsi Karia Operator Grid",
+      "deb": {
+        "dependencies": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "com.jigsikaria.terminator",
+      "longDescription": "Upgraded Version 4.0 Cyber OSINT Gateway & Hacker Scanner with 300+ tools for security professionals.",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "Cyber OSINT Gateway",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: ws:"
+    },
+    "windows": [
+      {
+        "title": "Jigsi Karia Terminator v4.0",
+        "width": 1400,
+        "height": 900,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  }
+}

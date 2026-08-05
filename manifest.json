@@ -1,0 +1,21 @@
+{
+  "short_name": "OSINTHub",
+  "name": "AI Cybersecurity & OSINT Aggregator Gateway",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/nolan/192/matrix.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/nolan/512/matrix.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#000000",
+  "theme_color": "#00ff00",
+  "display": "standalone",
+  "orientation": "portrait"
+}

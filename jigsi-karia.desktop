@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Jigsi Karia Terminator
+Comment=Cyber OSINT Gateway & Hacker Scanner v4.0
+Exec=bash -c "cd $(dirname %k) && ./build-linux.sh"
+Icon=utilities-terminal
+Terminal=true
+Type=Application
+Categories=Development;Security;Network;
+Keywords=osint;hacking;cybersecurity;scanner;terminator;

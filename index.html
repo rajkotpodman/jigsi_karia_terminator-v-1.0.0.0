@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>jigsi_karia</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ff00">
+    <style>
+        /* ----- Reset & Matrix Canvas ----- */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#000; overflow-x:hidden; font-family:'Courier New',monospace; color:#0f0; min-height:100vh; }
+        #matrix-canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; background:#000; }
+
+        /* ----- Auth Overlay (Login / Signup) ----- */
+        .auth-overlay {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.92); z-index:9999;
+            display:flex; justify-content:center; align-items:center;
+        }
+        .auth-box {
+            background:rgba(10,15,29,0.95); border:2px solid #0f0;
+            padding:30px; border-radius:12px; width:90%; max-width:400px;
+            text-align:center; box-shadow:0 0 25px rgba(0,255,0,0.4);
+        }
+        .auth-box h2 { margin-bottom:20px; color:#0f0; font-size:20px; letter-spacing:1px; }
+        .auth-box input {
+            width:100%; padding:12px; margin:10px 0;
+            background:#000; border:1px solid #0f0; color:#fff;
+            font-family:inherit; font-size:16px; text-align:center;
+            border-radius:5px; outline:none;
+        }
+        .auth-box button {
+            width:100%; padding:12px; margin-top:15px;
+            background:#0f0; color:#0a0f1d; border:none;
+            font-size:16px; font-weight:bold; cursor:pointer;
+            border-radius:5px; font-family:inherit; transition:0.2s;
+        }
+        .auth-box button:hover { background:#fff; box-shadow:0 0 15px #fff; color:#000; }
+        .auth-toggle { color:#00bcff; cursor:pointer; margin-top:15px; display:inline-block; font-size:14px; }
+
+        /* ----- Main Container (hidden until auth) ----- */
+        .container {
+            position:relative; z-index:1;
+            background:rgba(10,15,29,0.85); padding:25px 30px 40px;
+            border-radius:15px; box-shadow:0 0 30px rgba(0,255,0,0.25);
+            width:95%; max-width:1400px; margin:20px auto;
+            border:1px solid #0f0; backdrop-filter:blur(2px);
+            text-align:center; display:none;
+        }
+        h1 { font-size:28px; font-weight:700; color:#0f0; margin-bottom:5px; text-shadow:0 0 15px rgba(0,255,0,0.6); }
+        .version { font-size:14px; color:#00bcff; margin-bottom:25px; font-weight:bold; text-shadow:0 0 8px rgba(0,188,255,0.3); }
+
+        /* ----- Illegal Notice Banner ----- */
+        .illegal-notice {
+            background:rgba(255,68,68,0.25); border:2px solid #f44;
+            color:#f99; padding:15px; border-radius:8px; margin-bottom:25px;
+            font-size:14px; font-weight:bold; display:flex;
+            justify-content:space-between; align-items:center; gap:15px; text-align:left;
+        }
+        .notice-btn {
+            background:#f44; color:#fff; border:none; padding:8px 16px;
+            border-radius:5px; font-size:12px; font-weight:bold;
+            cursor:pointer; font-family:inherit; transition:0.2s; white-space:nowrap;
+        }
+        .notice-btn:hover { background:#fff; color:#000; box-shadow:0 0 10px #fff; }
+
+        /* ----- Search Box ----- */
+        .search-box { position:relative; width:100%; max-width:800px; margin:0 auto 35px auto; }
+        .search-input {
+            width:100%; padding:16px 20px 16px 50px;
+            border:2px solid #0f0; background:rgba(10,15,29,0.9);
+            border-radius:10px; font-size:18px; outline:none;
+            color:#fff; text-align:center; font-weight:bold; font-family:inherit;
+        }
+        .search-input:focus { box-shadow:0 0 20px #0f0; border-color:#0f0; }
+        .search-icon { position:absolute; left:18px; top:18px; color:#0f0; font-size:20px; }
+
+        /* ----- Category Sections ----- */
+        .category-section {
+            margin-bottom:28px; text-align:left;
+            background:rgba(13,21,39,0.8); padding:20px;
+            border-radius:10px; border:1px solid #00bcff;
+        }
+        .category-title {
+            font-size:16px; font-weight:700; color:#00bcff;
+            text-transform:uppercase; margin-bottom:15px;
+            letter-spacing:1px; border-left:4px solid #ff0055; padding-left:10px;
+        }
+        .buttons-grid { display:flex; flex-wrap:wrap; gap:8px; }
+        .engine-btn {
+            padding:10px 14px; font-size:12px; font-weight:600;
+            color:#0a0f1d; background:#0f0; border:none; border-radius:5px;
+            cursor:pointer; transition:all 0.2s; text-align:center;
+            min-width:140px; font-family:inherit; box-shadow:0 0 6px rgba(0,255,0,0.3);
+        }
+        .engine-btn:hover { background:#fff; box-shadow:0 0 20px #fff; transform:translateY(-3px) scale(1.02); color:#000; }
+        .c-osint { background:#ff0055; color:#fff; }
+        .c-osint:hover { background:#fff; color:#000; }
+        .c-extra { background:#00bcff; color:#0a0f1d; }
+        .c-extra:hover { background:#fff; }
+        .c-network { background:#ffaa00; color:#0a0f1d; }
+        .c-network:hover { background:#fff; }
+        .c-exploit { background:#aa44ff; color:#fff; }
+        .c-exploit:hover { background:#fff; color:#000; }
+        .c-threat { background:#ff4444; color:#fff; }
+        .c-threat:hover { background:#fff; color:#000; }
+        .c-social { background:#ff88cc; color:#0a0f1d; }
+        .c-social:hover { background:#fff; }
+        .c-misc { background:#66ccff; color:#0a0f1d; }
+        .c-misc:hover { background:#fff; }
+        .c-ai { background:#cc33ff; color:#fff; }
+        .c-ai:hover { background:#fff; color:#000; }
+        .c-dark { background:#333; color:#fff; }
+        .c-dark:hover { background:#fff; color:#000; }
+        .c-crypto { background:#ffaa33; color:#0a0f1d; }
+        .c-crypto:hover { background:#fff; }
+        .c-leak { background:#ff66aa; color:#0a0f1d; }
+        .c-leak:hover { background:#fff; }
+        .c-forensic { background:#33aaff; color:#0a0f1d; }
+        .c-forensic:hover { background:#fff; }
+        .c-cloud { background:#66ddff; color:#0a0f1d; }
+        .c-cloud:hover { background:#fff; }
+    </style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker Registered!', reg))
+        .catch(err => console.error('Registration Failed:', err));
+    });
+}
+</script>
+
+<!-- Matrix Canvas -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- ==================== AUTH OVERLAY ==================== -->
+<div id="authOverlay" class="auth-overlay">
+    <div class="auth-box" id="loginBox">
+        <h2>🔐 JIGSI_KARIA SECURE PORTAL</h2>
+        <input type="text" id="loginUser" placeholder="યુઝરનેમ ટાઈપ કરો..." />
+        <input type="password" id="loginPass" placeholder="પાસવર્ડ ટાઈપ કરો..." />
+        <button onclick="handleLogin()">પોર્ટલ એક્સેસ કરો (Login)</button>
+        <span class="auth-toggle" onclick="toggleAuth(true)">નવું ક્રેડિન્શિયલ બનાવો (Sign Up)</span>
+    </div>
+    <div class="auth-box" id="signupBox" style="display:none;">
+        <h2>📝 REGISTER HACKER ID</h2>
+        <input type="text" id="regUser" placeholder="નવું યુઝરનેમ નક્કી કરો..." />
+        <input type="password" id="regPass" placeholder="નવો સેફ પાસવર્ડ સેટ કરો..." />
+        <button onclick="handleSignup()">ડેટાબેઝ સેવ કરો (Sign Up)</button>
+        <span class="auth-toggle" onclick="toggleAuth(false)">પહેલેથી આઈડી છે? લોગિન કરો</span>
+    </div>
+</div>
+
+<!-- ==================== MAIN APPLICATION ==================== -->
+<div class="container" id="mainApp">
+
+    <h1>⚡ CYBER OSINT GATEWAY & HACKER SCANNER ⚡</h1>
+    <div class="version">UPGRADED VERSION 4.0 • 300+ TOOLS • HUB: jigsi_karia</div>
+
+    <!-- Notice Banner -->
+    <div class="illegal-notice" id="noticeBanner">
+        <span>⚠️ <b>NOTICE:</b> Do not use this site for any illegal activities! This dashboard is structured explicitly for cyber security verification and data intelligence research.</span>
+        <button class="notice-btn" onclick="acknowledgeNotice()">I AGREE & CONFIRM</button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+        <span class="search-icon">💀</span>
+        <input type="text" id="keywordInput" class="search-input" value="9898048483" placeholder="ટાર્ગેટ યુઝરનેમ, આઈપી, ડોમેન અથવા કીવર્ડ લખો..." onkeypress="if(event.key === 'Enter') event.preventDefault();" />
+    </div>
+
+    <!-- ==================== CATEGORY 1: CORE SEARCH ENGINES (52) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🌐 મેગા સર્ચ એન્જિન્સ (52 Core Engines)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn" onclick="openEngine('google')">Google</button>
+            <button class="engine-btn" onclick="openEngine('bing')">Bing</button>
+            <button class="engine-btn" onclick="openEngine('yahoo')">Yahoo</button>
+            <button class="engine-btn" onclick="openEngine('duck')">DuckDuckGo</button>
+            <button class="engine-btn" onclick="openEngine('brave')">Brave AI</button>
+            <button class="engine-btn" onclick="openEngine('startpage')">Startpage</button>
+            <button class="engine-btn" onclick="openEngine('swisscows')">Swisscows</button>
+            <button class="engine-btn" onclick="openEngine('qwant')">Qwant</button>
+            <button class="engine-btn" onclick="openEngine('mojeek')">Mojeek</button>
+            <button class="engine-btn" onclick="openEngine('ask')">Ask.com</button>
+            <button class="engine-btn" onclick="openEngine('aol')">AOL Search</button>
+            <button class="engine-btn" onclick="openEngine('lycos')">Lycos</button>
+            <button class="engine-btn" onclick="openEngine('github')">GitHub</button>
+            <button class="engine-btn" onclick="openEngine('stackoverflow')">StackOverflow</button>
+            <button class="engine-btn" onclick="openEngine('sourceforge')">SourceForge</button>
+            <button class="engine-btn" onclick="openEngine('phind')">Phind (AI)</button>
+            <button class="engine-btn" onclick="openEngine('shodan')">Shodan (IoT)</button>
+            <button class="engine-btn" onclick="openEngine('wiki')">Wikipedia</button>
+            <button class="engine-btn" onclick="openEngine('scholar')">Google Scholar</button>
+            <button class="engine-btn" onclick="openEngine('archive')">Internet Archive</button>
+            <button class="engine-btn" onclick="openEngine('wolfram')">WolframAlpha</button>
+            <button class="engine-btn" onclick="openEngine('britannica')">Britannica</button>
+            <button class="engine-btn" onclick="openEngine('youtube')">YouTube</button>
+            <button class="engine-btn" onclick="openEngine('pinterest')">Pinterest</button>
+            <button class="engine-btn" onclick="openEngine('flickr')">Flickr</button>
+            <button class="engine-btn" onclick="openEngine('reddit')">Reddit</button>
+            <button class="engine-btn" onclick="openEngine('giphy')">Giphy</button>
+            <button class="engine-btn" onclick="openEngine('baidu')">Baidu</button>
+            <button class="engine-btn" onclick="openEngine('yandex')">Yandex</button>
+            <button class="engine-btn" onclick="openEngine('naver')">Naver</button>
+            <button class="engine-btn" onclick="openEngine('ecosia')">Ecosia</button>
+            <button class="engine-btn" onclick="openEngine('searx')">SearX</button>
+            <button class="engine-btn c-extra" onclick="openEngine('gibiru')">Gibiru</button>
+            <button class="engine-btn c-extra" onclick="openEngine('metager')">MetaGer</button>
+            <button class="engine-btn c-extra" onclick="openEngine('you')">You.com AI</button>
+            <button class="engine-btn c-extra" onclick="openEngine('perplex')">Perplexity AI</button>
+            <button class="engine-btn c-extra" onclick="openEngine('exalead')">Exalead</button>
+            <button class="engine-btn c-extra" onclick="openEngine('dogpile')">Dogpile</button>
+            <button class="engine-btn c-extra" onclick="openEngine('webcrawler')">WebCrawler</button>
+            <button class="engine-btn c-extra" onclick="openEngine('infospace')">InfoSpace</button>
+            <button class="engine-btn c-extra" onclick="openEngine('excite')">Excite</button>
+            <button class="engine-btn c-extra" onclick="openEngine('teoma')">Teoma</button>
+            <button class="engine-btn c-extra" onclick="openEngine('mooter')">Mooter</button>
+            <button class="engine-btn c-extra" onclick="openEngine('hotbot')">HotBot</button>
+            <button class="engine-btn c-extra" onclick="openEngine('rambler')">Rambler</button>
+            <button class="engine-btn c-extra" onclick="openEngine('alltheweb')">AllTheWeb</button>
+            <button class="engine-btn c-extra" onclick="openEngine('goo')">Goo Japan</button>
+            <button class="engine-btn c-extra" onclick="openEngine('cococc')">Coccoc</button>
+            <button class="engine-btn c-extra" onclick="openEngine('seznam')">Seznam</button>
+            <button class="engine-btn c-extra" onclick="openEngine('daum')">Daum</button>
+            <button class="engine-btn c-extra" onclick="openEngine('w尋')">W尋 China</button>
+            <button class="engine-btn c-extra" onclick="openEngine('swiss')">Swiss Search</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 2: OSINT & INTELLIGENCE (76) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🕵️ ઓસિંટ, આઈપી ક્વાલિટી અને ફૂટપ્રિન્ટ (76 Cyber Intel Links)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-osint" onclick="openEngine('ipquality')">IPQualityScore</button>
+            <button class="engine-btn c-osint" onclick="openEngine('naamai')">Naam.ai</button>
+            <button class="engine-btn c-osint" onclick="openEngine('instantuser')">InstantUsername</button>
+            <button class="engine-btn c-osint" onclick="openEngine('usersearch')">UserSearch</button>
+            <button class="engine-btn c-osint" onclick="openEngine('digitalfootprint')">DigitalFootprint</button>
+            <button class="engine-btn c-osint" onclick="openEngine('whatsmyname')">WhatsMyName</button>
+            <button class="engine-btn c-osint" onclick="openEngine('sherlock')">Sherlock Web</button>
+            <button class="engine-btn c-osint" onclick="openEngine('haveibeenpwned')">HaveIBeenPwned</button>
+            <button class="engine-btn c-osint" onclick="openEngine('dehashed')">DeHashed</button>
+            <button class="engine-btn c-osint" onclick="openEngine('intelx')">Intelligence X</button>
+            <button class="engine-btn c-osint" onclick="openEngine('virustotal')">VirusTotal</button>
+            <button class="engine-btn c-osint" onclick="openEngine('urlscan')">URLScan.io</button>
+            <button class="engine-btn c-osint" onclick="openEngine('dnsdumpster')">DNSDumpster</button>
+            <button class="engine-btn c-osint" onclick="openEngine('crtsh')">Crt.sh SSL</button>
+            <button class="engine-btn c-osint" onclick="openEngine('hunterio')">Hunter.io</button>
+            <button class="engine-btn c-osint" onclick="openEngine('voilanorbert')">VoilaNorbert</button>
+            <button class="engine-btn c-osint" onclick="openEngine('anyrun')">Any.Run</button>
+            <button class="engine-btn c-osint" onclick="openEngine('hybridanalysis')">HybridAnalysis</button>
+            <button class="engine-btn c-osint" onclick="openEngine('censys')">Censys Scan</button>
+            <button class="engine-btn c-osint" onclick="openEngine('zoomeye')">ZoomEye</button>
+            <button class="engine-btn c-osint" onclick="openEngine('ipinfo')">IPinfo.io</button>
+            <button class="engine-btn c-osint" onclick="openEngine('ipapi')">IP-API</button>
+            <button class="engine-btn c-osint" onclick="openEngine('arin')">ARIN Whois</button>
+            <button class="engine-btn c-osint" onclick="openEngine('ripe')">RIPE DB</button>
+            <button class="engine-btn c-osint" onclick="openEngine('bgpview')">BGPView</button>
+            <button class="engine-btn c-osint" onclick="openEngine('mxtoolbox')">MXToolBox</button>
+            <button class="engine-btn c-osint" onclick="openEngine('viewdns')">ViewDNS.info</button>
+            <button class="engine-btn c-osint" onclick="openEngine('threatcrowd')">ThreatCrowd</button>
+            <button class="engine-btn c-osint" onclick="openEngine('otx')">Alienvault OTX</button>
+            <button class="engine-btn c-osint" onclick="openEngine('abuseipdb')">AbuseIPDB</button>
+            <button class="engine-btn c-osint" onclick="openEngine('scamalytics')">Scamalytics</button>
+            <button class="engine-btn c-osint" onclick="openEngine('blacklistmaster')">BlacklistMaster</button>
+            <button class="engine-btn c-osint" onclick="openEngine('builtwith')">BuiltWith</button>
+            <button class="engine-btn c-osint" onclick="openEngine('wappalyzer')">Wappalyzer</button>
+            <button class="engine-btn c-osint" onclick="openEngine('wayback')">Wayback Machine</button>
+            <button class="engine-btn c-osint" onclick="openEngine('socialsearcher')">Social Searcher</button>
+            <button class="engine-btn c-osint" onclick="openEngine('tineye')">TinEye Image</button>
+            <button class="engine-btn c-osint" onclick="openEngine('pimeyes')">PimEyes Face</button>
+            <button class="engine-btn c-osint" onclick="openEngine('osintframework')">OSINT Framework</button>
+            <button class="engine-btn c-osint" onclick="openEngine('spiderfoot')">Spiderfoot</button>
+            <button class="engine-btn c-osint" onclick="openEngine('maltego')">Maltego Web</button>
+            <button class="engine-btn c-osint" onclick="openEngine('wigle')">WiGle WiFi</button>
+            <button class="engine-btn c-osint" onclick="openEngine('shodandomain')">Shodan Domain</button>
+            <button class="engine-btn c-osint" onclick="openEngine('threatminer')">ThreatMiner</button>
+            <button class="engine-btn c-osint" onclick="openEngine('pulsedive')">Pulsedive</button>
+            <button class="engine-btn c-osint" onclick="openEngine('leaklookup')">Leak-Lookup</button>
+            <button class="engine-btn c-osint" onclick="openEngine('snusbase')">Snusbase</button>
+            <button class="engine-btn c-osint" onclick="openEngine('inteltechniques')">IntelTechniques</button>
+            <button class="engine-btn c-osint" onclick="openEngine('iknowwhatyoudownload')">IKnowWhatYouDownload</button>
+            <button class="engine-btn c-osint" onclick="openEngine('dnslytics')">DNSlytics</button>
+            <button class="engine-btn c-osint" onclick="openEngine('domaintools')">DomainTools</button>
+            <button class="engine-btn c-osint" onclick="openEngine('securitytrails')">SecurityTrails</button>
+            <button class="engine-btn c-osint" onclick="openEngine('spyse')">Spyse</button>
+            <button class="engine-btn c-osint" onclick="openEngine('greynoise')">GreyNoise</button>
+            <button class="engine-btn c-osint" onclick="openEngine('phonebookcz')">Phonebook.cz</button>
+            <button class="engine-btn c-osint" onclick="openEngine('emailrep')">EmailRep</button>
+            <button class="engine-btn c-osint" onclick="openEngine('phoneinfoga')">PhoneInfoga</button>
+            <button class="engine-btn c-osint" onclick="openEngine('epieos')">Epieos</button>
+            <button class="engine-btn c-osint" onclick="openEngine('holehe')">Holehe</button>
+            <button class="engine-btn c-osint" onclick="openEngine('maigret')">Maigret</button>
+            <button class="engine-btn c-osint" onclick="openEngine('grepapp')">Grep.app</button>
+            <button class="engine-btn c-osint" onclick="openEngine('onyphe')">Onyphe</button>
+            <button class="engine-btn c-osint" onclick="openEngine('fofa')">Fofa.so</button>
+            <button class="engine-btn c-osint" onclick="openEngine('binaryedge')">BinaryEdge</button>
+            <button class="engine-btn c-osint" onclick="openEngine('riskiq')">RiskIQ</button>
+            <button class="engine-btn c-osint" onclick="openEngine('recordedfuture')">Recorded Future</button>
+            <button class="engine-btn c-osint" onclick="openEngine('flashpoint')">Flashpoint</button>
+            <button class="engine-btn c-osint" onclick="openEngine('crowdsec')">CrowdSec</button>
+            <button class="engine-btn c-osint" onclick="openEngine('urlhaus')">URLhaus</button>
+            <button class="engine-btn c-osint" onclick="openEngine('maltiverse')">Maltiverse</button>
+            <button class="engine-btn c-osint" onclick="openEngine('polyverse')">Polyverse</button>
+            <button class="engine-btn c-osint" onclick="openEngine('binaryalert')">BinaryAlert</button>
+            <button class="engine-btn c-osint" onclick="openEngine('dnstwist')">DNSTwist</button>
+            <button class="engine-btn c-osint" onclick="openEngine('subfinder')">Subfinder Web</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 3: NETWORK & DOMAIN (40) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🌍 નેટવર્ક અને ડોમેન ટૂલ્સ (40 Network/Domain)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-network" onclick="openEngine('hackertarget')">HackerTarget</button>
+            <button class="engine-btn c-network" onclick="openEngine('yougetsignal')">YouGetSignal</button>
+            <button class="engine-btn c-network" onclick="openEngine('pentesttools')">PentestTools</button>
+            <button class="engine-btn c-network" onclick="openEngine('cyberchef')">CyberChef</button>
+            <button class="engine-btn c-network" onclick="openEngine('dnschecker')">DNSChecker</button>
+            <button class="engine-btn c-network" onclick="openEngine('whois')">Whois Lookup</button>
+            <button class="engine-btn c-network" onclick="openEngine('nslookup')">NSLookup.io</button>
+            <button class="engine-btn c-network" onclick="openEngine('dnspropagation')">DNS Propagation</button>
+            <button class="engine-btn c-network" onclick="openEngine('intodns')">IntoDNS</button>
+            <button class="engine-btn c-network" onclick="openEngine('zonemaster')">Zonemaster</button>
+            <button class="engine-btn c-network" onclick="openEngine('dnstable')">DNS Table</button>
+            <button class="engine-btn c-network" onclick="openEngine('spfcheck')">SPF Check</button>
+            <button class="engine-btn c-network" onclick="openEngine('dmarc')">DMARC Analyzer</button>
+            <button class="engine-btn c-network" onclick="openEngine('blacklistcheck')">Blacklist Check</button>
+            <button class="engine-btn c-network" onclick="openEngine('ipvoid')">IP Void</button>
+            <button class="engine-btn c-network" onclick="openEngine('whatismyip')">WhatIsMyIP</button>
+            <button class="engine-btn c-network" onclick="openEngine('geoplugin')">GeoPlugin</button>
+            <button class="engine-btn c-network" onclick="openEngine('ip2location')">IP2Location</button>
+            <button class="engine-btn c-network" onclick="openEngine('ipfingerprints')">IP Fingerprints</button>
+            <button class="engine-btn c-network" onclick="openEngine('ipv6check')">IPv6 Check</button>
+            <button class="engine-btn c-network" onclick="openEngine('portchecker')">Port Checker</button>
+            <button class="engine-btn c-network" onclick="openEngine('canyouseeme')">CanYouSeeMe</button>
+            <button class="engine-btn c-network" onclick="openEngine('subnetcalc')">Subnet Calculator</button>
+            <button class="engine-btn c-network" onclick="openEngine('bgpviewio')">BGPView IO</button>
+            <button class="engine-btn c-network" onclick="openEngine('asnlookup')">ASN Lookup</button>
+            <button class="engine-btn c-network" onclick="openEngine('peeringdb')">PeeringDB</button>
+            <button class="engine-btn c-network" onclick="openEngine('internetdb')">InternetDB</button>
+            <button class="engine-btn c-network" onclick="openEngine('passivetotal')">PassiveTotal</button>
+            <button class="engine-btn c-network" onclick="openEngine('riskiqio')">RiskIQ IO</button>
+            <button class="engine-btn c-network" onclick="openEngine('netscan')">NetScan</button>
+            <button class="engine-btn c-network" onclick="openEngine('neighbors')">Network Neighbors</button>
+            <button class="engine-btn c-network" onclick="openEngine('traceroute')">Traceroute</button>
+            <button class="engine-btn c-network" onclick="openEngine('ping')">Ping Tool</button>
+            <button class="engine-btn c-network" onclick="openEngine('mtr')">MTR Report</button>
+            <button class="engine-btn c-network" onclick="openEngine('dnslookup')">DNS Lookup</button>
+            <button class="engine-btn c-network" onclick="openEngine('reversedns')">Reverse DNS</button>
+            <button class="engine-btn c-network" onclick="openEngine('domainbigdata')">Domain Big Data</button>
+            <button class="engine-btn c-network" onclick="openEngine('whoismind')">Whois Mind</button>
+            <button class="engine-btn c-network" onclick="openEngine('domainpulse')">Domain Pulse</button>
+            <button class="engine-btn c-network" onclick="openEngine('dnsviz')">DNSViz</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 4: EXPLOIT & VULN (30) ==================== -->
+    <div class="category-section">
+        <div class="category-title">💣 એક્સપ્લોઇટ અને નબળાઈ ડેટાબેઝ (30 Exploit/Vuln DB)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-exploit" onclick="openEngine('exploitdb')">Exploit-DB</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('rapid7')">Rapid7 DB</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('nvd')">NVD (NIST)</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('cve')">CVE Details</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulndb')">VulnDB</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('cxsecurity')">CXSecurity</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('packetstorm')">Packet Storm</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('securityfocus')">SecurityFocus</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('osvdb')">OSVDB</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulners')">Vulners</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('exploitprediction')">Exploit Prediction</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('sploitus')">Sploitus</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulmon')">Vulmon</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('cvedb')">CVE DB</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('securityvulns')">SecurityVulns</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('zeroday')">ZeroDay Initiative</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('exploitalert')">Exploit Alert</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulncode')">VulnCode</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('cvepro')">CVE Pro</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulnerabilitylab')">Vulnerability Lab</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('threatpost')">ThreatPost Vuln</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('securityweek')">SecurityWeek Vuln</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('darkreading')">DarkReading Vuln</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('infosecinstitute')">InfoSec Institute</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('sans')">SANS CVE</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('cvecircle')">CVE Circle</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('exploitshub')">Exploits Hub</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('vulndata')">Vuln Data</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('exploitpack')">Exploit Pack</button>
+            <button class="engine-btn c-exploit" onclick="openEngine('metasploit')">Metasploit Modules</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 5: THREAT INTEL & MALWARE (30) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🛡️ થ્રેટ ઇન્ટેલિજન્સ અને માલવેર (30 Threat Intel/Malware)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-threat" onclick="openEngine('misp')">MISP</button>
+            <button class="engine-btn c-threat" onclick="openEngine('thehive')">TheHive</button>
+            <button class="engine-btn c-threat" onclick="openEngine('yara')">YARA</button>
+            <button class="engine-btn c-threat" onclick="openEngine('malwaresamples')">Malware Samples</button>
+            <button class="engine-btn c-threat" onclick="openEngine('vxunderground')">VX Underground</button>
+            <button class="engine-btn c-threat" onclick="openEngine('malwarebazaar')">MalwareBazaar</button>
+            <button class="engine-btn c-threat" onclick="openEngine('virusshare')">VirusShare</button>
+            <button class="engine-btn c-threat" onclick="openEngine('malsignature')">MalSignatures</button>
+            <button class="engine-btn c-threat" onclick="openEngine('threatfox')">ThreatFox</button>
+            <button class="engine-btn c-threat" onclick="openEngine('feodotracker')">FeodoTracker</button>
+            <button class="engine-btn c-threat" onclick="openEngine('spamhaus')">Spamhaus</button>
+            <button class="engine-btn c-threat" onclick="openEngine('urlvir')">URLVir</button>
+            <button class="engine-btn c-threat" onclick="openEngine('virscan')">VirScan</button>
+            <button class="engine-btn c-threat" onclick="openEngine('jotti')">Jotti</button>
+            <button class="engine-btn c-threat" onclick="openEngine('metadefender')">MetaDefender</button>
+            <button class="engine-btn c-threat" onclick="openEngine('virusdesk')">Virus Desk</button>
+            <button class="engine-btn c-threat" onclick="openEngine('fortiguard')">FortiGuard</button>
+            <button class="engine-btn c-threat" onclick="openEngine('ibmxforce')">IBM X-Force</button>
+            <button class="engine-btn c-threat" onclick="openEngine('talos')">Talos Intelligence</button>
+            <button class="engine-btn c-threat" onclick="openEngine('sophos')">Sophos Threat</button>
+            <button class="engine-btn c-threat" onclick="openEngine('mcafee')">McAfee Threat</button>
+            <button class="engine-btn c-threat" onclick="openEngine('symantec')">Symantec Threat</button>
+            <button class="engine-btn c-threat" onclick="openEngine('trendmicro')">Trend Micro</button>
+            <button class="engine-btn c-threat" onclick="openEngine('kaspersky')">Kaspersky Threat</button>
+            <button class="engine-btn c-threat" onclick="openEngine('eset')">ESET Threat</button>
+            <button class="engine-btn c-threat" onclick="openEngine('bitdefender')">Bitdefender</button>
+            <button class="engine-btn c-threat" onclick="openEngine('cybereason')">Cybereason</button>
+            <button class="engine-btn c-threat" onclick="openEngine('crowdstrike')">CrowdStrike</button>
+            <button class="engine-btn c-threat" onclick="openEngine('fireeye')">FireEye</button>
+            <button class="engine-btn c-threat" onclick="openEngine('mandiant')">Mandiant</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 6: SOCIAL & PEOPLE (40) ==================== -->
+    <div class="category-section">
+        <div class="category-title">👤 સોશિયલ અને વ્યક્તિ શોધ (40 Social/People)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-social" onclick="openEngine('peekyou')">PeekYou</button>
+            <button class="engine-btn c-social" onclick="openEngine('pipl')">Pipl</button>
+            <button class="engine-btn c-social" onclick="openEngine('spokeo')">Spokeo</button>
+            <button class="engine-btn c-social" onclick="openEngine('thatsthem')">That's Them</button>
+            <button class="engine-btn c-social" onclick="openEngine('whitepages')">WhitePages</button>
+            <button class="engine-btn c-social" onclick="openEngine('zoominfo')">ZoomInfo</button>
+            <button class="engine-btn c-social" onclick="openEngine('linkedin')">LinkedIn</button>
+            <button class="engine-btn c-social" onclick="openEngine('facebook')">Facebook</button>
+            <button class="engine-btn c-social" onclick="openEngine('twitter')">Twitter</button>
+            <button class="engine-btn c-social" onclick="openEngine('instagram')">Instagram</button>
+            <button class="engine-btn c-social" onclick="openEngine('tiktok')">TikTok</button>
+            <button class="engine-btn c-social" onclick="openEngine('snapchat')">Snapchat</button>
+            <button class="engine-btn c-social" onclick="openEngine('telegram')">Telegram</button>
+            <button class="engine-btn c-social" onclick="openEngine('discord')">Discord</button>
+            <button class="engine-btn c-social" onclick="openEngine('reddituser')">Reddit User</button>
+            <button class="engine-btn c-social" onclick="openEngine('vkontakte')">VKontakte</button>
+            <button class="engine-btn c-social" onclick="openEngine('okru')">OK.ru</button>
+            <button class="engine-btn c-social" onclick="openEngine('meetup')">Meetup</button>
+            <button class="engine-btn c-social" onclick="openEngine('foursquare')">Foursquare</button>
+            <button class="engine-btn c-social" onclick="openEngine('gravatar')">Gravatar</button>
+            <button class="engine-btn c-social" onclick="openEngine('twitterx')">X (Twitter)</button>
+            <button class="engine-btn c-social" onclick="openEngine('mastodon')">Mastodon</button>
+            <button class="engine-btn c-social" onclick="openEngine('pinterest2')">Pinterest</button>
+            <button class="engine-btn c-social" onclick="openEngine('tumblr')">Tumblr</button>
+            <button class="engine-btn c-social" onclick="openEngine('flickr2')">Flickr</button>
+            <button class="engine-btn c-social" onclick="openEngine('imgur')">Imgur</button>
+            <button class="engine-btn c-social" onclick="openEngine('vimeo')">Vimeo</button>
+            <button class="engine-btn c-social" onclick="openEngine('dailymotion')">Dailymotion</button>
+            <button class="engine-btn c-social" onclick="openEngine('soundcloud')">SoundCloud</button>
+            <button class="engine-btn c-social" onclick="openEngine('mixcloud')">Mixcloud</button>
+            <button class="engine-btn c-social" onclick="openEngine('bandcamp')">Bandcamp</button>
+            <button class="engine-btn c-social" onclick="openEngine('patreon')">Patreon</button>
+            <button class="engine-btn c-social" onclick="openEngine('github2')">GitHub</button>
+            <button class="engine-btn c-social" onclick="openEngine('gitlab')">GitLab</button>
+            <button class="engine-btn c-social" onclick="openEngine('bitbucket')">Bitbucket</button>
+            <button class="engine-btn c-social" onclick="openEngine('keybase')">Keybase</button>
+            <button class="engine-btn c-social" onclick="openEngine('aboutme')">About.me</button>
+            <button class="engine-btn c-social" onclick="openEngine('angelco')">AngelList</button>
+            <button class="engine-btn c-social" onclick="openEngine('producthunt')">Product Hunt</button>
+            <button class="engine-btn c-social" onclick="openEngine('crunchbase')">Crunchbase</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 7: AI SUITES (20) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🤖 એડવાન્સ્ડ AI સ્યુટ્સ અને જનરેટિવ ટૂલ્સ (20 AI Tools)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-ai" onclick="openEngine('chatgpt')">ChatGPT Open</button>
+            <button class="engine-btn c-ai" onclick="openEngine('claude')">Claude Anthropic</button>
+            <button class="engine-btn c-ai" onclick="openEngine('perplex_ai')">Perplexity Search</button>
+            <button class="engine-btn c-ai" onclick="openEngine('gemini')">Google Gemini</button>
+            <button class="engine-btn c-ai" onclick="openEngine('deepseek')">DeepSeek Portal</button>
+            <button class="engine-btn c-ai" onclick="openEngine('blackbox')">Blackbox AI</button>
+            <button class="engine-btn c-ai" onclick="openEngine('hugging')">Hugging Face</button>
+            <button class="engine-btn c-ai" onclick="openEngine('copilot')">MS Copilot</button>
+            <button class="engine-btn c-ai" onclick="openEngine('mistral')">Mistral AI</button>
+            <button class="engine-btn c-ai" onclick="openEngine('llama')">Llama Meta</button>
+            <button class="engine-btn c-ai" onclick="openEngine('groq')">Groq Cloud</button>
+            <button class="engine-btn c-ai" onclick="openEngine('cohere')">Cohere</button>
+            <button class="engine-btn c-ai" onclick="openEngine('ai21')">AI21 Labs</button>
+            <button class="engine-btn c-ai" onclick="openEngine('replicate')">Replicate</button>
+            <button class="engine-btn c-ai" onclick="openEngine('runwayml')">RunwayML</button>
+            <button class="engine-btn c-ai" onclick="openEngine('stable_diffusion')">Stable Diffusion</button>
+            <button class="engine-btn c-ai" onclick="openEngine('midjourney')">Midjourney (Web)</button>
+            <button class="engine-btn c-ai" onclick="openEngine('dalle')">DALL·E</button>
+            <button class="engine-btn c-ai" onclick="openEngine('leonardo')">Leonardo AI</button>
+            <button class="engine-btn c-ai" onclick="openEngine('playground')">Playground AI</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 8: CRYPTO & BLOCKCHAIN (20) ==================== -->
+    <div class="category-section">
+        <div class="category-title">₿ ક્રિપ્ટોકરન્સી અને બ્લોકચેન ઓસિંટ (20 Crypto Tools)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-crypto" onclick="openEngine('blockchair')">Blockchair</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('btc')">Bitcoin Explorer</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('eth')">Etherscan</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('bsc')">BSCScan</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('solana')">Solana Explorer</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('polygon')">Polygon Scan</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('arbitrum')">Arbitrum Explorer</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('optimism')">Optimism Scan</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('avalanche')">Avalanche Explorer</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('chainlink')">Chainlink</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('uniswap')">Uniswap Info</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('debank')">DeBank</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('zapper')">Zapper</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('nansen')">Nansen</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('dune')">Dune Analytics</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('coingecko')">CoinGecko</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('coinmarketcap')">CoinMarketCap</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('cryptocompare')">CryptoCompare</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('bitinfo')">BitInfoCharts</button>
+            <button class="engine-btn c-crypto" onclick="openEngine('token')">Token Sniffer</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 9: DARK WEB & TOR (15) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🌑 ડાર્ક વેબ અને TOR ટૂલ્સ (15 Dark Web)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-dark" onclick="openEngine('torproject')">Tor Project</button>
+            <button class="engine-btn c-dark" onclick="openEngine('onion')">Onion Links</button>
+            <button class="engine-btn c-dark" onclick="openEngine('darksearch')">DarkSearch</button>
+            <button class="engine-btn c-dark" onclick="openEngine('ahmia')">Ahmia</button>
+            <button class="engine-btn c-dark" onclick="openEngine('grams')">Grams</button>
+            <button class="engine-btn c-dark" onclick="openEngine('torch')">Torch</button>
+            <button class="engine-btn c-dark" onclick="openEngine('notevil')">Not Evil</button>
+            <button class="engine-btn c-dark" onclick="openEngine('onionland')">OnionLand</button>
+            <button class="engine-btn c-dark" onclick="openEngine('darkweb')">DarkWeb Links</button>
+            <button class="engine-btn c-dark" onclick="openEngine('onionsearch')">OnionSearch</button>
+            <button class="engine-btn c-dark" onclick="openEngine('darkstats')">DarkStats</button>
+            <button class="engine-btn c-dark" onclick="openEngine('darknet')">DarkNet Stats</button>
+            <button class="engine-btn c-dark" onclick="openEngine('tor2web')">Tor2Web</button>
+            <button class="engine-btn c-dark" onclick="openEngine('onioncity')">Onion City</button>
+            <button class="engine-btn c-dark" onclick="openEngine('darklist')">Dark List</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 10: CLOUD & DEVOPS OSINT (15) ==================== -->
+    <div class="category-section">
+        <div class="category-title">☁️ ક્લાઉડ અને ડેવોપ્સ ઓસિંટ (15 Cloud Tools)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-cloud" onclick="openEngine('aws')">AWS Inspector</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('azure')">Azure Scanner</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('gcp')">GCP Explorer</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('docker')">Docker Hub</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('kubernetes')">K8s Dashboard</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('terraform')">Terraform Registry</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('ansible')">Ansible Galaxy</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('jenkins')">Jenkins</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('gitlab_cloud')">GitLab</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('github_cloud')">GitHub</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('bitbucket_cloud')">Bitbucket</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('circleci')">CircleCI</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('travis')">Travis CI</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('cloudflare')">Cloudflare</button>
+            <button class="engine-btn c-cloud" onclick="openEngine('digitalocean')">DigitalOcean</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 11: FORENSICS & DATA LEAK (20) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🔎 ફોરેન્સિક અને ડેટા લીક (20 Forensic/Leak)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-forensic" onclick="openEngine('forensic')">Forensic Wiki</button>
+            <button class="engine-btn c-forensic" onclick="openEngine('autopsy')">Autopsy</button>
+            <button class="engine-btn c-forensic" onclick="openEngine('sleuthkit')">Sleuth Kit</button>
+            <button class="engine-btn c-forensic" onclick="openEngine('volatility')">Volatility</button>
+            <button class="engine-btn c-forensic" onclick="openEngine('recover')">Data Recovery</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakcheck')">LeakCheck</button>
+            <button class="engine-btn c-leak" onclick="openEngine('breachdirectory')">BreachDirectory</button>
+            <button class="engine-btn c-leak" onclick="openEngine('weleakinfo')">WeLeakInfo</button>
+            <button class="engine-btn c-leak" onclick="openEngine('scylla')">Scylla</button>
+            <button class="engine-btn c-leak" onclick="openEngine('ghostproject')">Ghost Project</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakbase')">LeakBase</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakpeek')">LeakPeek</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakchecker')">LeakChecker</button>
+            <button class="engine-btn c-leak" onclick="openEngine('pwned')">Pwned Check</button>
+            <button class="engine-btn c-leak" onclick="openEngine('breach')">Breach Check</button>
+            <button class="engine-btn c-leak" onclick="openEngine('databreach')">DataBreach</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakedsource')">LeakedSource</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakchecker2')">LeakChecker 2</button>
+            <button class="engine-btn c-leak" onclick="openEngine('breachdb')">Breach DB</button>
+            <button class="engine-btn c-leak" onclick="openEngine('leakalert')">Leak Alert</button>
+        </div>
+    </div>
+
+    <!-- ==================== CATEGORY 12: MISC HACKER TOOLS (30) ==================== -->
+    <div class="category-section">
+        <div class="category-title">🧰 અન્ય હેકર ટૂલ્સ (30 Misc Tools)</div>
+        <div class="buttons-grid">
+            <button class="engine-btn c-misc" onclick="openEngine('hashkiller')">Hash Killer</button>
+            <button class="engine-btn c-misc" onclick="openEngine('crackstation')">CrackStation</button>
+            <button class="engine-btn c-misc" onclick="openEngine('hashes')">Hashes.org</button>
+            <button class="engine-btn c-misc" onclick="openEngine('base64')">Base64 Decode</button>
+            <button class="engine-btn c-misc" onclick="openEngine('cyberchef2')">CyberChef</button>
+            <button class="engine-btn c-misc" onclick="openEngine('dcode')">dCode</button>
+            <button class="engine-btn c-misc" onclick="openEngine('regex101')">Regex101</button>
+            <button class="engine-btn c-misc" onclick="openEngine('urlencode')">URL Encode</button>
+            <button class="engine-btn c-misc" onclick="openEngine('rot13')">ROT13</button>
+            <button class="engine-btn c-misc" onclick="openEngine('xor')">XOR Calculator</button>
+            <button class="engine-btn c-misc" onclick="openEngine('ascii')">ASCII Table</button>
+            <button class="engine-btn c-misc" onclick="openEngine('hex')">Hex Converter</button>
+            <button class="engine-btn c-misc" onclick="openEngine('bin')">Binary Converter</button>
+            <button class="engine-btn c-misc" onclick="openEngine('dig')">Dig Tool</button>
+            <button class="engine-btn c-misc" onclick="openEngine('nslookup2')">NSLookup</button>
+            <button class="engine-btn c-misc" onclick="openEngine('whois2')">Whois</button>
+            <button class="engine-btn c-misc" onclick="openEngine('robtex')">Robtex</button>
+            <button class="engine-btn c-misc" onclick="openEngine('bgpview2')">BGPView</button>
+            <button class="engine-btn c-misc" onclick="openEngine('dnstable2')">DNS Table</button>
+            <button class="engine-btn c-misc" onclick="openEngine('shodan2')">Shodan</button>
+            <button class="engine-btn c-misc" onclick="openEngine('dnsintel')">DNS Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('ipintel')">IP Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('domainintel')">Domain Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('emailintel')">Email Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('phoneintel')">Phone Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('socialintel')">Social Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('geointel')">Geo Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('netintel')">Net Intel</button>
+            <button class="engine-btn c-misc" onclick="openEngine('osinttool')">OSINT Tool</button>
+            <button class="engine-btn c-misc" onclick="openEngine('osintcombine')">OSINT Combine</button>
+        </div>
+    </div>
+
+</div> <!-- End container -->
+
+<script>
+// ==================== MATRIX CANVAS (Full screen digital rain) ====================
+(function() {
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    let w,h;
+    function resize() { w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    const cols = Math.floor(w / 18);
+    const drops = Array(cols).fill(1);
+    const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}[]|;:,.<>?";
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = '#00ff66';
+        ctx.font = '18px monospace';
+        for (let i=0; i<drops.length; i++) {
+            const text = chars[Math.floor(Math.random()*chars.length)];
+            const x = i * 18;
+            const y = drops[i] * 18;
+            ctx.fillText(text, x, y);
+            if (y > h && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(draw, 35);
+})();
+
+// ==================== AUTH SYSTEM ====================
+function toggleAuth(showSignup) {
+    document.getElementById('loginBox').style.display = showSignup ? 'none' : 'block';
+    document.getElementById('signupBox').style.display = showSignup ? 'block' : 'none';
+}
+
+function handleSignup() {
+    const u = document.getElementById('regUser').value.trim();
+    const p = document.getElementById('regPass').value.trim();
+    if (!u || !p) return alert('કૃપા કરીને યુઝરનેમ અને પાસવર્ડ આપો!');
+    if (u.length < 2 || p.length < 2) return alert('ઓછામાં ઓછા ૨ અક્ષરનું યુઝરનેમ/પાસવર્ડ આપો.');
+    localStorage.setItem('gate_user', u);
+    localStorage.setItem('gate_pass', p);
+    alert('✅ રજીસ્ટ્રેશન સફળ! હવે લોગિન કરો.');
+    toggleAuth(false);
+}
+
+function handleLogin() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    const storedU = localStorage.getItem('gate_user') || 'admin';
+    const storedP = localStorage.getItem('gate_pass') || 'admin';
+    if (u === storedU && p === storedP) {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+    } else {
+        alert('❌ ખોટું યુઝરનેમ અથવા પાસવર્ડ!');
+    }
+}
+
+// ==================== NOTICE ACKNOWLEDGE ====================
+function acknowledgeNotice() {
+    document.getElementById('noticeBanner').style.display = 'none';
+}
+
+// ==================== ENGINE MAPPING (300+ TOOLS) ====================
+function openEngine(key) {
+    const query = document.getElementById('keywordInput').value.trim();
+    if (!query) return alert('કૃપા કરીને સર્ચ ક્વેરી ઇનપુટ કરો!');
+    const enc = encodeURIComponent(query);
+    const engines = {
+
+        // ----- Core Search (52) -----
+        google: `https://www.google.com/search?q=${enc}`,
+        bing: `https://www.bing.com/search?q=${enc}`,
+        yahoo: `https://search.yahoo.com/search?p=${enc}`,
+        duck: `https://duckduckgo.com/?q=${enc}`,
+        brave: `https://search.brave.com/search?q=${enc}&source=llm`,
+        startpage: `https://www.startpage.com/sp/search?query=${enc}`,
+        swisscows: `https://swisscows.com/web?query=${enc}`,
+        qwant: `https://www.qwant.com/?q=${enc}`,
+        mojeek: `https://www.mojeek.com/search?q=${enc}`,
+        ask: `https://www.ask.com/web?q=${enc}`,
+        aol: `https://search.aol.com/aol/search?q=${enc}`,
+        lycos: `https://search.lycos.com/web/?q=${enc}`,
+        github: `https://github.com/search?q=${enc}`,
+        stackoverflow: `https://stackoverflow.com/search?q=${enc}`,
+        sourceforge: `https://sourceforge.net/directory/?q=${enc}`,
+        phind: `https://www.phind.com/search?q=${enc}`,
+        shodan: `https://www.shodan.io/search?query=${enc}`,
+        wiki: `https://en.wikipedia.org/w/index.php?search=${enc}`,
+        scholar: `https://scholar.google.com/scholar?q=${enc}`,
+        archive: `https://archive.org/search.php?query=${enc}`,
+        wolfram: `https://www.wolframalpha.com/input?i=${enc}`,
+        britannica: `https://www.britannica.com/search?query=${enc}`,
+        youtube: `https://www.youtube.com/results?search_query=${enc}`,
+        pinterest: `https://www.pinterest.com/search/pins/?q=${enc}`,
+        flickr: `https://www.flickr.com/search/?text=${enc}`,
+        reddit: `https://www.reddit.com/search/?q=${enc}`,
+        giphy: `https://giphy.com/search/${enc}`,
+        baidu: `https://www.baidu.com/s?wd=${enc}`,
+        yandex: `https://yandex.com/search/?text=${enc}`,
+        naver: `https://search.naver.com/search.naver?query=${enc}`,
+        ecosia: `https://www.ecosia.org/search?q=${enc}`,
+        searx: `https://searx.be/search?q=${enc}`,
+        gibiru: `https://gibiru.com/results.html?q=${enc}`,
+        metager: `https://metager.org/meta/meta.ger3?eingabe=${enc}`,
+        you: `https://you.com/search?q=${enc}`,
+        perplex: `https://www.perplexity.ai/?q=${enc}`,
+        exalead: `https://www.exalead.com/search/web/results/?q=${enc}`,
+        dogpile: `https://www.dogpile.com/serp?q=${enc}`,
+        webcrawler: `https://www.webcrawler.com/serp?q=${enc}`,
+        infospace: `https://www.infospace.com/serp?q=${enc}`,
+        excite: `https://results.excite.com/serp?q=${enc}`,
+        teoma: `https://www.teoma.com/web?q=${enc}`,
+        mooter: `https://www.mooter.com/search?q=${enc}`,
+        hotbot: `https://www.hotbot.com/?q=${enc}`,
+        rambler: `https://nova.rambler.org/search?query=${enc}`,
+        alltheweb: `https://www.alltheweb.com/search?q=${enc}`,
+        goo: `https://search.goo.ne.jp/web.jsp?MT=${enc}`,
+        cococc: `https://coccoc.com/search?query=${enc}`,
+        seznam: `https://search.seznam.cz/?q=${enc}`,
+        daum: `https://search.daum.net/search?q=${enc}`,
+        'w尋': `https://www.w尋.com/s?wd=${enc}`,
+        swiss: `https://search.ch/?q=${enc}`,
+
+        // ----- OSINT (76) -----
+        ipquality: `https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test/lookup/${enc}`,
+        naamai: `https://naam.ai/search?q=${enc}`,
+        instantuser: `https://instantusername.com/#${enc}`,
+        usersearch: `https://usersearch.org/results_email.php?q=${enc}`,
+        digitalfootprint: `https://www.digitalfootprintcheck.com/search?q=${enc}`,
+        whatsmyname: `https://whatsmyname.app/?q=${enc}`,
+        sherlock: `https://sherlock-web.herokuapp.com/user/${enc}`,
+        haveibeenpwned: `https://haveibeenpwned.com/account/${enc}`,
+        dehashed: `https://www.dehashed.com/search?query=${enc}`,
+        intelx: `https://intelx.io/?s=${enc}`,
+        virustotal: `https://www.virustotal.com/gui/search/${enc}`,
+        urlscan: `https://urlscan.io/search/#${enc}`,
+        dnsdumpster: `https://dnsdumpster.com/`,
+        crtsh: `https://crt.sh/?q=${enc}`,
+        hunterio: `https://hunter.io/try/search/${enc}`,
+        voilanorbert: `https://www.voilanorbert.com/`,
+        anyrun: `https://app.any.run/submissions/`,
+        hybridanalysis: `https://www.hybrid-analysis.com/search?query=${enc}`,
+        censys: `https://censys.io/ipv4?q=${enc}`,
+        zoomeye: `https://www.zoomeye.org/searchResult?q=${enc}`,
+        ipinfo: `https://ipinfo.io/${enc}`,
+        ipapi: `https://ip-api.com/#${enc}`,
+        arin: `https://whois.arin.net/rest/nets;q=${enc}`,
+        ripe: `https://apps.db.ripe.net/db-web-ui/query?searchtext=${enc}`,
+        bgpview: `https://bgpview.io/search/${enc}`,
+        mxtoolbox: `https://mxtoolbox.com/SuperTool.aspx?action=mx%3a${enc}`,
+        viewdns: `https://viewdns.info/reverseip/?host=${enc}&t=1`,
+        threatcrowd: `https://www.threatcrowd.org/pivot.php?data=${enc}`,
+        otx: `https://otx.alienvault.com/browse/indicators?q=${enc}`,
+        abuseipdb: `https://www.abuseipdb.com/check/${enc}`,
+        scamalytics: `https://scamalytics.com/ip/${enc}`,
+        blacklistmaster: `https://blacklistmaster.com/check?ip=${enc}`,
+        builtwith: `https://builtwith.com/${enc}`,
+        wappalyzer: `https://www.wappalyzer.com/lookup/${enc}`,
+        wayback: `https://web.archive.org/web/*/${enc}`,
+        socialsearcher: `https://www.social-searcher.com/search-users/?q=${enc}`,
+        tineye: `https://tineye.com/search/?url=${enc}`,
+        pimeyes: `https://pimeyes.com/`,
+        osintframework: `https://osintframework.com/`,
+        spiderfoot: `https://www.spiderfoot.net/`,
+        maltego: `https://www.maltego.com/`,
+        wigle: `https://wigle.net/`,
+        shodandomain: `https://www.shodan.io/domain/${enc}`,
+        threatminer: `https://www.threatminer.org/index.php?q=${enc}`,
+        pulsedive: `https://pulsedive.com/indicator/?ioc=${enc}`,
+        leaklookup: `https://leak-lookup.com/`,
+        snusbase: `https://snusbase.com/`,
+        inteltechniques: `https://inteltechniques.com/`,
+        iknowwhatyoudownload: `https://iknowwhatyoudownload.com/en/peer/?ip=${enc}`,
+        dnslytics: `https://dnslytics.com/search?q=${enc}`,
+        domaintools: `https://whois.domaintools.com/${enc}`,
+        securitytrails: `https://securitytrails.com/domain/${enc}`,
+        spyse: `https://spyse.com/search?q=${enc}`,
+        greynoise: `https://viz.greynoise.io/query?gnql=${enc}`,
+        phonebookcz: `https://phonebook.cz/`,
+        emailrep: `https://emailrep.io/${enc}`,
+        phoneinfoga: `https://phoneinfoga.org/`,
+        epieos: `https://epieos.com/`,
+        holehe: `https://holehe.app/`,
+        maigret: `https://maigret.app/`,
+        grepapp: `https://grep.app/`,
+        onyphe: `https://www.onyphe.io/`,
+        fofa: `https://fofa.so/`,
+        binaryedge: `https://www.binaryedge.io/`,
+        riskiq: `https://www.riskiq.com/`,
+        recordedfuture: `https://www.recordedfuture.com/`,
+        flashpoint: `https://flashpoint.io/`,
+        crowdsec: `https://crowdsec.net/`,
+        urlhaus: `https://urlhaus.abuse.ch/`,
+        maltiverse: `https://maltiverse.com/`,
+        polyverse: `https://polyverse.com/`,
+        binaryalert: `https://binaryalert.io/`,
+        dnstwist: `https://dnstwist.it/`,
+        subfinder: `https://subfinder.xyz/`,
+
+        // ----- Network (40) -----
+        hackertarget: `https://hackertarget.com/ip-address-lookup/?q=${enc}`,
+        yougetsignal: `https://www.yougetsignal.com/tools/open-ports/?ip=${enc}`,
+        pentesttools: `https://pentest-tools.com/`,
+        cyberchef: `https://gchq.github.io/CyberChef/`,
+        dnschecker: `https://dnschecker.org/`,
+        whois: `https://whois.domaintools.com/${enc}`,
+        nslookup: `https://www.nslookup.io/`,
+        dnspropagation: `https://www.dnspropagation.net/`,
+        intodns: `https://intodns.com/${enc}`,
+        zonemaster: `https://zonemaster.net/`,
+        dnstable: `https://dnstable.com/`,
+        spfcheck: `https://www.spfcheck.com/`,
+        dmarc: `https://dmarcly.com/`,
+        blacklistcheck: `https://whatismyipaddress.com/blacklist-check`,
+        ipvoid: `https://www.ipvoid.com/`,
+        whatismyip: `https://whatismyipaddress.com/`,
+        geoplugin: `https://www.geoplugin.com/`,
+        ip2location: `https://www.ip2location.com/${enc}`,
+        ipfingerprints: `https://ipfingerprints.com/`,
+        ipv6check: `https://ipv6-test.com/`,
+        portchecker: `https://portchecker.co/`,
+        canyouseeme: `https://canyouseeme.org/`,
+        subnetcalc: `https://www.subnet-calculator.com/`,
+        bgpviewio: `https://bgpview.io/`,
+        asnlookup: `https://asnlookup.com/`,
+        peeringdb: `https://www.peeringdb.com/`,
+        internetdb: `https://internetdb.shodan.io/`,
+        passivetotal: `https://www.passivetotal.org/`,
+        riskiqio: `https://www.riskiq.io/`,
+        netscan: `https://netscan.co/`,
+        neighbors: `https://www.neighbors.org/`,
+        traceroute: `https://www.traceroute.org/`,
+        ping: `https://www.ping.eu/`,
+        mtr: `https://mtr.sh/`,
+        dnslookup: `https://www.dnslookup.com/`,
+        reversedns: `https://www.reversedns.com/`,
+        domainbigdata: `https://domainbigdata.com/`,
+        whoismind: `https://www.whoismind.com/`,
+        domainpulse: `https://domainpulse.com/`,
+        dnsviz: `https://dnsviz.net/`,
+
+        // ----- Exploit (30) -----
+        exploitdb: `https://www.exploit-db.com/search?q=${enc}`,
+        rapid7: `https://www.rapid7.com/db/?q=${enc}`,
+        nvd: `https://nvd.nist.gov/vuln/search/results?query=${enc}`,
+        cve: `https://www.cvedetails.com/vulnerability-search.php?q=${enc}`,
+        vulndb: `https://vulndb.cyberriskanalytics.com/`,
+        cxsecurity: `https://cxsecurity.com/`,
+        packetstorm: `https://packetstormsecurity.com/`,
+        securityfocus: `https://www.securityfocus.com/`,
+        osvdb: `https://osvdb.org/`,
+        vulners: `https://vulners.com/`,
+        exploitprediction: `https://www.exploitpredictor.com/`,
+        sploitus: `https://sploitus.com/`,
+        vulmon: `https://vulmon.com/`,
+        cvedb: `https://cvedb.com/`,
+        securityvulns: `https://securityvulns.com/`,
+        zeroday: `https://zerodayinitiative.com/`,
+        exploitalert: `https://exploitalert.com/`,
+        vulncode: `https://vulncode.com/`,
+        cvepro: `https://cvepro.com/`,
+        vulnerabilitylab: `https://vulnerabilitylab.com/`,
+        threatpost: `https://threatpost.com/`,
+        securityweek: `https://securityweek.com/`,
+        darkreading: `https://darkreading.com/`,
+        infosecinstitute: `https://infosecinstitute.com/`,
+        sans: `https://www.sans.org/`,
+        cvecircle: `https://cve.circl.lu/`,
+        exploitshub: `https://exploitshub.com/`,
+        vulndata: `https://vulndata.com/`,
+        exploitpack: `https://exploitpack.com/`,
+        metasploit: `https://www.metasploit.com/`,
+
+        // ----- Threat Intel (30) -----
+        misp: `https://www.misp-project.org/`,
+        thehive: `https://thehive-project.org/`,
+        yara: `https://virustotal.com/gui/search/${enc}`,
+        malwaresamples: `https://malwaresamples.com/`,
+        vxunderground: `https://vxunderground.org/`,
+        malwarebazaar: `https://bazaar.abuse.ch/`,
+        virusshare: `https://virusshare.com/`,
+        malsignature: `https://malsignature.com/`,
+        threatfox: `https://threatfox.abuse.ch/`,
+        feodotracker: `https://feodotracker.abuse.ch/`,
+        spamhaus: `https://www.spamhaus.org/`,
+        urlvir: `https://urlvir.com/`,
+        virscan: `https://virscan.org/`,
+        jotti: `https://virusscan.jotti.org/`,
+        metadefender: `https://metadefender.com/`,
+        virusdesk: `https://virusdesk.com/`,
+        fortiguard: `https://fortiguard.com/`,
+        ibmxforce: `https://exchange.xforce.ibmcloud.com/`,
+        talos: `https://talosintelligence.com/`,
+        sophos: `https://www.sophos.com/`,
+        mcafee: `https://www.mcafee.com/`,
+        symantec: `https://www.symantec.com/`,
+        trendmicro: `https://www.trendmicro.com/`,
+        kaspersky: `https://www.kaspersky.com/`,
+        eset: `https://www.eset.com/`,
+        bitdefender: `https://www.bitdefender.com/`,
+        cybereason: `https://www.cybereason.com/`,
+        crowdstrike: `https://www.crowdstrike.com/`,
+        fireeye: `https://www.fireeye.com/`,
+        mandiant: `https://www.mandiant.com/`,
+
+        // ----- Social (40) -----
+        peekyou: `https://www.peekyou.com/${enc}`,
+        pipl: `https://pipl.com/search/?q=${enc}`,
+        spokeo: `https://www.spokeo.com/search?q=${enc}`,
+        thatsthem: `https://thatsthem.com/search?q=${enc}`,
+        whitepages: `https://www.whitepages.com/search/${enc}`,
+        zoominfo: `https://www.zoominfo.com/search/${enc}`,
+        linkedin: `https://www.linkedin.com/search/results/all/?keywords=${enc}`,
+        facebook: `https://www.facebook.com/search/top/?q=${enc}`,
+        twitter: `https://twitter.com/search?q=${enc}`,
+        instagram: `https://www.instagram.com/explore/search/keyword/?q=${enc}`,
+        tiktok: `https://www.tiktok.com/search?q=${enc}`,
+        snapchat: `https://www.snapchat.com/`,
+        telegram: `https://t.me/s/${enc}`,
+        discord: `https://discord.com/`,
+        reddituser: `https://www.reddit.com/user/${enc}`,
+        vkontakte: `https://vk.com/search?q=${enc}`,
+        okru: `https://ok.ru/search?q=${enc}`,
+        meetup: `https://www.meetup.com/find/?keywords=${enc}`,
+        foursquare: `https://foursquare.com/explore?q=${enc}`,
+        gravatar: `https://en.gravatar.com/${enc}`,
+        twitterx: `https://twitter.com/search?q=${enc}`,
+        mastodon: `https://mastodon.social/explore?q=${enc}`,
+        pinterest2: `https://www.pinterest.com/search/pins/?q=${enc}`,
+        tumblr: `https://www.tumblr.com/search/${enc}`,
+        flickr2: `https://www.flickr.com/search/?text=${enc}`,
+        imgur: `https://imgur.com/search?q=${enc}`,
+        vimeo: `https://vimeo.com/search?q=${enc}`,
+        dailymotion: `https://www.dailymotion.com/search/${enc}`,
+        soundcloud: `https://soundcloud.com/search?q=${enc}`,
+        mixcloud: `https://www.mixcloud.com/search/?q=${enc}`,
+        bandcamp: `https://bandcamp.com/search?q=${enc}`,
+        patreon: `https://www.patreon.com/search?q=${enc}`,
+        github2: `https://github.com/search?q=${enc}`,
+        gitlab: `https://gitlab.com/search?search=${enc}`,
+        bitbucket: `https://bitbucket.org/search?q=${enc}`,
+        keybase: `https://keybase.io/search/${enc}`,
+        aboutme: `https://about.me/${enc}`,
+        angelco: `https://angel.co/search?q=${enc}`,
+        producthunt: `https://www.producthunt.com/search?q=${enc}`,
+        crunchbase: `https://www.crunchbase.com/search/${enc}`,
+
+        // ----- AI (20) -----
+        chatgpt: `https://chatgpt.com/`,
+        claude: `https://claude.ai/`,
+        perplex_ai: `https://www.perplexity.ai/?q=${enc}`,
+        gemini: `https://gemini.google.com/`,
+        deepseek: `https://www.deepseek.com/`,
+        blackbox: `https://www.blackbox.ai/?q=${enc}`,
+        hugging: `https://huggingface.co/models?search=${enc}`,
+        copilot: `https://copilot.microsoft.com/`,
+        mistral: `https://mistral.ai/`,
+        llama: `https://llama.meta.com/`,
+        groq: `https://groq.com/`,
+        cohere: `https://cohere.com/`,
+        ai21: `https://www.ai21.com/`,
+        replicate: `https://replicate.com/`,
+        runwayml: `https://runwayml.com/`,
+        stable_diffusion: `https://stability.ai/`,
+        midjourney: `https://midjourney.com/`,
+        dalle: `https://openai.com/dall-e-3`,
+        leonardo: `https://leonardo.ai/`,
+        playground: `https://playgroundai.com/`,
+
+        // ----- Crypto (20) -----
+        blockchair: `https://blockchair.com/search?q=${enc}`,
+        btc: `https://www.blockchain.com/explorer/addresses/btc/${enc}`,
+        eth: `https://etherscan.io/search?q=${enc}`,
+        bsc: `https://bscscan.com/search?q=${enc}`,
+        solana: `https://explorer.solana.com/search?q=${enc}`,
+        polygon: `https://polygonscan.com/search?q=${enc}`,
+        arbitrum: `https://arbiscan.io/search?q=${enc}`,
+        optimism: `https://optimistic.etherscan.io/search?q=${enc}`,
+        avalanche: `https://snowtrace.io/search?q=${enc}`,
+        chainlink: `https://chain.link/`,
+        uniswap: `https://info.uniswap.org/`,
+        debank: `https://debank.com/`,
+        zapper: `https://zapper.fi/`,
+        nansen: `https://nansen.ai/`,
+        dune: `https://dune.com/`,
+        coingecko: `https://www.coingecko.com/en/search?query=${enc}`,
+        coinmarketcap: `https://coinmarketcap.com/`,
+        cryptocompare: `https://www.cryptocompare.com/`,
+        bitinfo: `https://bitinfocharts.com/`,
+        token: `https://tokensniffer.com/`,
+
+        // ----- Dark Web (15) -----
+        torproject: `https://www.torproject.org/`,
+        onion: `https://onion.link/`,
+        darksearch: `https://darksearch.io/`,
+        ahmia: `https://ahmia.fi/`,
+        grams: `https://grams7enufi7jmdl.onion/`,
+        torch: `http://torchdeedp3i2jigzjdmfpn5ttjhthh5wbmda2rr3jvqjg5p77c54dqd.onion/`,
+        notevil: `http://hss3uro2hsxfogfq.onion/`,
+        onionland: `https://onionland.com/`,
+        darkweb: `https://darkweb.com/`,
+        onionsearch: `https://onionsearchengine.com/`,
+        darkstats: `https://darkstats.com/`,
+        darknet: `https://darknetstats.com/`,
+        tor2web: `https://tor2web.org/`,
+        onioncity: `https://onion.city/`,
+        darklist: `https://darklist.com/`,
+
+        // ----- Cloud (15) -----
+        aws: `https://aws.amazon.com/`,
+        azure: `https://azure.microsoft.com/`,
+        gcp: `https://cloud.google.com/`,
+        docker: `https://hub.docker.com/search?q=${enc}`,
+        kubernetes: `https://kubernetes.io/`,
+        terraform: `https://registry.terraform.io/`,
+        ansible: `https://galaxy.ansible.com/`,
+        jenkins: `https://plugins.jenkins.io/`,
+        gitlab_cloud: `https://gitlab.com/`,
+        github_cloud: `https://github.com/`,
+        bitbucket_cloud: `https://bitbucket.org/`,
+        circleci: `https://circleci.com/`,
+        travis: `https://travis-ci.com/`,
+        cloudflare: `https://www.cloudflare.com/`,
+        digitalocean: `https://www.digitalocean.com/`,
+
+        // ----- Forensic & Leak (20) -----
+        forensic: `https://forensic.wiki/`,
+        autopsy: `https://www.autopsy.com/`,
+        sleuthkit: `https://www.sleuthkit.org/`,
+        volatility: `https://volatilityfoundation.org/`,
+        recover: `https://www.recover.com/`,
+        leakcheck: `https://leakcheck.net/`,
+        breachdirectory: `https://breachdirectory.org/`,
+        weleakinfo: `https://weleakinfo.com/`,
+        scylla: `https://scylla.so/`,
+        ghostproject: `https://ghostproject.fr/`,
+        leakbase: `https://leakbase.io/`,
+        leakpeek: `https://leakpeek.com/`,
+        leakchecker: `https://leakchecker.com/`,
+        pwned: `https://pwned.com/`,
+        breach: `https://breach.com/`,
+        databreach: `https://databreach.com/`,
+        leakedsource: `https://leakedsource.com/`,
+        leakchecker2: `https://leakchecker2.com/`,
+        breachdb: `https://breachdb.com/`,
+        leakalert: `https://leakalert.com/`,
+
+        // ----- Misc (30) -----
+        hashkiller: `https://hashkiller.io/`,
+        crackstation: `https://crackstation.net/`,
+        hashes: `https://hashes.org/`,
+        base64: `https://www.base64decode.org/`,
+        cyberchef2: `https://gchq.github.io/CyberChef/`,
+        dcode: `https://www.dcode.fr/`,
+        regex101: `https://regex101.com/`,
+        urlencode: `https://www.urlencoder.org/`,
+        rot13: `https://rot13.com/`,
+        xor: `https://xor.pw/`,
+        ascii: `https://www.ascii-code.com/`,
+        hex: `https://www.hexconvert.com/`,
+        bin: `https://www.binaryconvert.com/`,
+        dig: `https://www.digwebinterface.com/`,
+        nslookup2: `https://www.nslookup.io/`,
+        whois2: `https://who.is/`,
+        robtex: `https://robtex.com/`,
+        bgpview2: `https://bgpview.io/`,
+        dnstable2: `https://dnstable.com/`,
+        shodan2: `https://www.shodan.io/`,
+        dnsintel: `https://dnsintel.com/`,
+        ipintel: `https://ipintel.io/`,
+        domainintel: `https://domainintel.com/`,
+        emailintel: `https://emailintel.com/`,
+        phoneintel: `https://phoneintel.com/`,
+        socialintel: `https://socialintel.com/`,
+        geointel: `https://geointel.com/`,
+        netintel: `https://netintel.com/`,
+        osinttool: `https://osinttool.com/`,
+        osintcombine: `https://osintcombine.com/`
+    };
+
+    const url = engines[key];
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        alert('આ ટૂલની લિંક હજુ ઉમેરાઈ નથી, પણ અમે ટૂંક સમયમાં ઉમેરીશું.');
+    }
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker Registered Successfully!', reg))
+        .catch(err => console.error('Service Worker Registration Failed:', err));
+    });
+}
+</script>
+</body>
+</html>

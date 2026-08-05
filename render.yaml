@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: jigsi-karia-osint
+    env: static
+    buildCommand: ""
+    staticPublishPath: "./"
