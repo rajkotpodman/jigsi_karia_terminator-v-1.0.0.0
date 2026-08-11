@@ -1,0 +1,23 @@
+node_modules/
+dist/
+release/
+android/
+*.log
+.env
+.env.local
+.DS_Store
+*.keystore
+keystore.properties
+
+# PyFileShare Python desktop app
+pyfileshare/build/
+pyfileshare/dist/
+pyfileshare/PyFileShare.spec
+pyfileshare/app.log
+pyfileshare/config.json
+pyfileshare/cloudflared
+pyfileshare/cloudflared.exe
+
+# Python
+__pycache__/
+*.pyc

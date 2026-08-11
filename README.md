@@ -1,6 +1,9 @@
 # ⚡ JIGSI KARIA TERMINATOR v4.0
 
-[![CI/CD Build Status](https://github.com/jigsi-karia/terminator/actions/workflows/build.yml/badge.svg)](https://github.com/jigsi-karia/terminator/actions)
+[![Build Windows](https://github.com/jigsi-karia/terminator/actions/workflows/build-windows.yml/badge.svg)](https://github.com/jigsi-karia/terminator/actions/workflows/build-windows.yml)
+[![Build macOS](https://github.com/jigsi-karia/terminator/actions/workflows/build-macos.yml/badge.svg)](https://github.com/jigsi-karia/terminator/actions/workflows/build-macos.yml)
+[![Build Linux](https://github.com/jigsi-karia/terminator/actions/workflows/build-linux.yml/badge.svg)](https://github.com/jigsi-karia/terminator/actions/workflows/build-linux.yml)
+[![Build Android](https://github.com/jigsi-karia/terminator/actions/workflows/build-android.yml/badge.svg)](https://github.com/jigsi-karia/terminator/actions/workflows/build-android.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platforms Supported](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android%20%7C%20Web-blue.svg)](#)
 
@@ -91,6 +94,51 @@ chmod +x deploy.sh
 # Or run manually:
 npx cap run android
 ```
+
+---
+
+## 🔨 Build Commands
+
+The project uses **Vite** for web builds and **electron-builder** for desktop packaging. All
+Electron main-process code is CommonJS (`require`), and static web assets live in the `public/`
+folder and are compiled into `dist/`.
+
+```bash
+# Install dependencies
+npm install
+
+# Run the Vite dev server
+npm run dev
+
+# Build the web application (outputs to dist/)
+npm run build
+
+# Launch the Electron desktop app
+npm start
+
+# Create desktop installers per platform
+npm run build:win       # Windows: NSIS installer + portable .exe
+npm run build:mac       # macOS: ad-hoc signed .dmg + .zip (x64 + arm64)
+npm run build:linux     # Linux: AppImage + .deb + .rpm
+
+# Android (requires Android Studio / SDK)
+npm run build:android   # Sync Capacitor and open Android Studio
+
+# Run electron-builder directly
+npm run dist
+```
+
+### GitHub Actions Workflows
+
+| Workflow | Triggers | Produces |
+| :--- | :--- | :--- |
+| `build-windows.yml` | push, PR, tags | NSIS installer `.exe` + portable `.exe` |
+| `build-macos.yml` | push, PR, tags | `.dmg` + `.zip` (x64, arm64, ad-hoc signed) |
+| `build-linux.yml` | push, PR, tags | `.AppImage` + `.deb` + `.rpm` |
+| `build-android.yml` | push, PR, tags | Signed release `.apk` (Android 8.0+) |
+| `docker-publish.yml` | push, PR, tags | GHCR Docker image |
+
+Artifacts are uploaded to GitHub Releases automatically on `v*` tag pushes.
 
 ---
 

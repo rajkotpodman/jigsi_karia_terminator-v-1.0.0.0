@@ -227,7 +227,7 @@ if ('serviceWorker' in navigator) {
             <button class="engine-btn c-extra" onclick="openEngine('cococc')">Coccoc</button>
             <button class="engine-btn c-extra" onclick="openEngine('seznam')">Seznam</button>
             <button class="engine-btn c-extra" onclick="openEngine('daum')">Daum</button>
-            <button class="engine-btn c-extra" onclick="openEngine('w尋')">W尋 China</button>
+            <button class="engine-btn c-extra" onclick="openEngine('sogou')">Sogou China</button>
             <button class="engine-btn c-extra" onclick="openEngine('swiss')">Swiss Search</button>
         </div>
     </div>
@@ -768,7 +768,7 @@ function openEngine(key) {
         cococc: `https://coccoc.com/search?query=${enc}`,
         seznam: `https://search.seznam.cz/?q=${enc}`,
         daum: `https://search.daum.net/search?q=${enc}`,
-        'w尋': `https://www.w尋.com/s?wd=${enc}`,
+        sogou: `https://www.sogou.com/web?query=${enc}`,
         swiss: `https://search.ch/?q=${enc}`,
 
         // ----- OSINT (76) -----
@@ -1134,15 +1134,6 @@ function openEngine(key) {
     } else {
         alert('આ ટૂલની લિંક હજુ ઉમેરાઈ નથી, પણ અમે ટૂંક સમયમાં ઉમેરીશું.');
     }
-}
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker Registered Successfully!', reg))
-        .catch(err => console.error('Service Worker Registration Failed:', err));
-    });
 }
 </script>
 </body>
