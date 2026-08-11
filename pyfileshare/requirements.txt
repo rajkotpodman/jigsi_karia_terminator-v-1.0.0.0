@@ -1,0 +1,13 @@
+# PyFileShare - core GUI dependencies
+pystray>=0.19.5
+Pillow>=10.0.0
+
+# Build tooling
+pyinstaller>=6.0.0
+
+# NOTE: cloudflared (the HTTPS tunnel provider) is NOT a pip package.
+# For a self-contained single-file build, place the standalone `cloudflared`
+# (or `cloudflared.exe` on Windows) binary in the same folder as app.spec and
+# run `pyinstaller app.spec` - it is embedded inside the executable and
+# unpacked to sys._MEIPASS at runtime. Download it from:
+#   https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
